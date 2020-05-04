@@ -1,5 +1,6 @@
 # limit
-limit user usage on desktop for ubuntu
+Simple parental tools, manage child or teens screentime on ubuntu.
+
 
 Set your user time out in file limit.dat
 eg:
@@ -14,4 +15,4 @@ Optional
 You can use supervisor (apt get supervisor) makesure limit.py always run in background.
 
 
-Test on Ubuntu 18.10
+Test on Ubuntu 18.10, python3
