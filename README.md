@@ -3,8 +3,8 @@ Simple parental tools, manage child or teens screentime on ubuntu.
 
 
 Set your user time out in file limit.dat
-eg:
-john;40
+	eg:
+	john;40
 
 This means user 'john' only allow to login via desktop for 40 minutes per day.
 
