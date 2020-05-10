@@ -32,6 +32,9 @@ def get_argument():
     # parser.add_argument("user", help="user to be monitor")
     # parser.add_argument("minutes", help="maximum minutes per day", type=int)
     parser.add_argument("-c", "--config-file", help="config-file")
+
+    parser.add_argument("-b", "--balance", help="show balance", action='store_true')
+
     args = parser.parse_args()
     return args
 
@@ -136,42 +139,76 @@ def getLoginUsers(controlled_users):
 
     return restricted_user
 
+
+
+def show_balance(users_max):
+	users = users_max.keys()
+
+	for user in users:
+		# print(user, users_max[user])
+
+		usage_file = "uselog." + user
+		if os.path.exists(usage_file):
+			usage = read(usage_file)
+		else:
+			usage = 0
+
+		seconds_use = int(usage) * 10
+		seconds_limit = int(users_max[user]) * 60
+
+		balance = (seconds_limit - seconds_use )/60
+
+		print("%s  max:%s    usage:%s   seconds_use:%s    seconds_limit:%s  %s"  % (user, users_max[user], usage, seconds_use, seconds_limit, balance ))
+
 def main():
-    USELOG = "/opt/limit/uselog."
-    USELOG = "uselog."
+	USELOG = "/opt/limit/uselog."
+	USELOG = "uselog."
 
-    users_max = read_config()
-    # print(users_max)
+	args = get_argument()
 
-    while True:
-        time.sleep(10)
+	users_max = read_config()
 
-        restricted_login_users = getLoginUsers(users_max)
-        # print(restricted_login_users)
-        
-        datefile = "/opt/limit/currdate"
-        datefile = "currdate"
-        currday1 = read(datefile)
-
-        currday2 = int(time.strftime("%d"))
-        # check if the day has changed, to reset the used quantum
-        if currday1 != currday2:
-            open(datefile, "wt").write(str(currday2))
-
-            for user in users_max.keys():
-                uselog = USELOG + user
-                try:
-                    os.remove(uselog)  
-                except FileNotFoundError:
-                    pass
+	if args.balance == True:
+		# print("balance true")
+		show_balance(users_max)
+		exit()
 
 
 
 
-        for user in restricted_login_users.keys():
-            max_minutes = users_max[user]
-            uselog = USELOG + user
-            process_restricted_users(user, int(max_minutes), uselog, restricted_login_users[user])
+
+
+	# print(users_max)
+
+	while True:
+		time.sleep(10)
+
+		restricted_login_users = getLoginUsers(users_max)
+		# print(restricted_login_users)
+
+		datefile = "/opt/limit/currdate"
+		datefile = "currdate"
+		currday1 = read(datefile)
+
+		currday2 = int(time.strftime("%d"))
+		# check if the day has changed, to reset the used quantum
+		if currday1 != currday2:
+		    open(datefile, "wt").write(str(currday2))
+
+		    for user in users_max.keys():
+		        uselog = USELOG + user
+		        try:
+		            os.remove(uselog)  
+		        except FileNotFoundError:
+		            pass
+
+
+
+
+		for user in restricted_login_users.keys():
+		    max_minutes = users_max[user]
+		    uselog = USELOG + user
+		    process_restricted_users(user, int(max_minutes), uselog, restricted_login_users[user])
 
 
 
