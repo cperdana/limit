@@ -54,48 +54,6 @@ def read_config():
     return datas
 
 
-def main_lama():
-    #--- set the time limit below (minutes)
-    minutes = 30
-    #--- set the user name to limit below
-    # user = "muhammad"
-    args = get_argument()
-    user = args.user 
-    minutes = args.minutes
-
-    uselog = "/opt/limit/uselog." + user
-    datefile = "/opt/limit/currdate"
-    currday1 = read(datefile)
-
-    while True:
-        time.sleep(10)
-        currday2 = int(time.strftime("%d"))
-        # check if the day has changed, to reset the used quantum
-        if currday1 != currday2:
-            open(datefile, "wt").write(str(currday2))
-            try:
-                os.remove(uselog)  
-            except FileNotFoundError:
-                pass
-        # if the pid of the targeted process exists, add a "tick" to the used quantum
-        check = subprocess.check_output(["who", "-u"]).decode("utf-8")
-        pid = [l.split() for l in check.splitlines() if all([user in l, not "pts/" in l ])]
-        if pid:
-            n = read(uselog)
-            n = n + 1 if n != None else 0
-            open(uselog, "wt").write(str(n))
-            # when time exceeds the permitted amount, kill the process
-            if int(n) > minutes*6:
-                disp = [d for d in [d[1] for d in pid] if all([":" in d, not "." in d])][0]
-                subprocess.Popen(["/bin/bash", "-c", message(disp, user)])
-                time.sleep(60)
-                pids = [p[-2] for p in pid]
-                for p in pids:
-                    subprocess.Popen(["kill", p])  
-
-        currday1 = currday2
-
-
 def process_restricted_users(user, minutes, uselog, data):
     print(user, minutes)
     disp = data[0]
@@ -111,6 +69,7 @@ def process_restricted_users(user, minutes, uselog, data):
         
         # pids = [p[-2] for p in pid]
         # for p in pids:
+        print("killing process: ", pid)
         subprocess.Popen(["kill", pid])
 
 
@@ -119,6 +78,8 @@ def process_restricted_users(user, minutes, uselog, data):
         print (msg)
         subprocess.Popen(["/bin/bash", "-c", msg])
         # time.sleep(60)
+    else:
+    	print("masa: ", n, (int(n) /6 ))
 
 def getLoginUsers(controlled_users):
     who = subprocess.check_output(["who", "-u"]).decode("utf-8")
@@ -132,8 +93,9 @@ def getLoginUsers(controlled_users):
         # pass
         # print(login)
         if login[0] in users_only:
-            # print("ada ", login[0])
             data = [login[1], login[-2]]
+            print("ada ", login[0], "   data:", data)
+
             restricted_user[login[0]] = data
             # restricted_user.append(user)
 
@@ -158,7 +120,7 @@ def show_balance(users_max):
 
 		balance = (seconds_limit - seconds_use )/60
 
-		print("%s  max:%s    usage:%s   seconds_use:%s    seconds_limit:%s  %s"  % (user, users_max[user], usage, seconds_use, seconds_limit, balance ))
+		print("%10s  max:%3s    usage:%4s   seconds_use:%4s    seconds_limit:%7s  %10s"  % (user, users_max[user], usage, seconds_use, seconds_limit, balance ))
 
 def main():
 	USELOG = "/opt/limit/uselog."
